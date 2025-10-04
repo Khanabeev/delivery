@@ -20,6 +20,15 @@ func Test_LocationBeCorrectedWhenParamsAreCorrectOnCreate(t *testing.T) {
 	assert.Equal(t, 2, Location.Y())
 }
 
+func Test_LocationShouldReturnErrorWhenParametersOutOfRange(t *testing.T) {
+	// Arrange
+
+	// Act
+	_, err := NewLocation(100, -1)
+
+	assert.Error(t, err)
+}
+
 func Test_LocationShouldCalculateDistance(t *testing.T) {
 	tests := map[string]struct {
 		x1       int
@@ -86,22 +95,22 @@ func Test_LocationReturnErrorWhenParamsAreIncorrectOnCreate(t *testing.T) {
 		"wrong_x_less_then_1": {
 			x:        0,
 			y:        1,
-			expected: errs.NewValueIsInvalidError("x"),
+			expected: errs.NewValueIsOutOfRangeError("x", 0, minX, maxX),
 		},
 		"wrong_x_bigger_then_10": {
 			x:        11,
 			y:        1,
-			expected: errs.NewValueIsInvalidError("x"),
+			expected: errs.NewValueIsOutOfRangeError("x", 11, minX, maxX),
 		},
 		"wrong_y_less_then_1": {
 			x:        1,
 			y:        0,
-			expected: errs.NewValueIsInvalidError("y"),
+			expected: errs.NewValueIsOutOfRangeError("y", 0, minY, maxY),
 		},
 		"wrong_y_bigger_then_10": {
 			x:        1,
 			y:        11,
-			expected: errs.NewValueIsInvalidError("y"),
+			expected: errs.NewValueIsOutOfRangeError("y", 11, minY, maxY),
 		},
 	}
 
@@ -124,5 +133,5 @@ func Test_LocationShouldCreateRandom(t *testing.T) {
 	assert.GreaterOrEqual(t, location.Y(), 1)
 	assert.LessOrEqual(t, location.X(), 10)
 	assert.LessOrEqual(t, location.Y(), 10)
-	assert.True(t, location.isSet)
+	assert.True(t, location.valid)
 }
