@@ -23,7 +23,7 @@ func NewStoragePlace(name string, totalVolume int) (*StoragePlace, error) {
 		return nil, errs.NewValueIsRequiredError("name")
 	}
 	if totalVolume <= 0 {
-		return nil, ErrQuantityIsZeroOrLess
+		return nil, errs.NewValueIsInvalidError("totalVolume")
 	}
 
 	return &StoragePlace{
