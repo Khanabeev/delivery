@@ -35,6 +35,9 @@ func NewStoragePlace(name string, totalVolume int) (*StoragePlace, error) {
 }
 
 func (s *StoragePlace) Equals(other *StoragePlace) bool {
+	if other == nil {
+		return false
+	}
 	return s.id == other.id
 }
 
