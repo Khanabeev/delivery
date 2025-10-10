@@ -133,5 +133,5 @@ func Test_LocationShouldCreateRandom(t *testing.T) {
 	assert.GreaterOrEqual(t, location.Y(), 1)
 	assert.LessOrEqual(t, location.X(), 10)
 	assert.LessOrEqual(t, location.Y(), 10)
-	assert.True(t, location.valid)
+	assert.True(t, location.isValid)
 }

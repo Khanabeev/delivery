@@ -2,7 +2,6 @@ package order
 
 import (
 	"delivery/internal/core/domain/kernel"
-	"delivery/internal/core/domain/model/kernel"
 	"delivery/internal/pkg/errs"
 
 	"github.com/google/uuid"
@@ -20,7 +19,7 @@ func NewOrder(orderID uuid.UUID, location kernel.Location, volume int) (*Order, 
 	if orderID == uuid.Nil {
 		return nil, errs.NewValueIsRequiredError("orderID")
 	}
-	if location.IsValid() {
+	if !location.IsValid() {
 		return nil, errs.NewValueIsRequiredError("location")
 	}
 	if volume <= 0 {
@@ -36,11 +35,14 @@ func NewOrder(orderID uuid.UUID, location kernel.Location, volume int) (*Order, 
 }
 
 func (o *Order) Equals(other *Order) bool {
+	if other == nil {
+		return false
+	}
 	return o.id == other.id
 }
 
-func (o *Order) ID() uuid.UUID {
-	return o.id
+func (o *Order) ID() *uuid.UUID {
+	return &o.id
 }
 
 func (o *Order) CourierID() uuid.UUID {
@@ -59,6 +61,23 @@ func (o *Order) Status() Status {
 	return o.status
 }
 
-func (o *Order) Assign(other *Order) bool {
-	return o.id == other.id
+func (o *Order) Assign(courierID uuid.UUID) error {
+	if o.status == StatusAssigned {
+		return errs.NewValueIsInvalidError("Courier is already assigned")
+	}
+
+	o.courierID = &courierID
+	o.status = StatusAssigned
+
+	return nil
+}
+
+func (o *Order) Complete() error {
+	if o.status != StatusAssigned {
+		return errs.NewValueIsInvalidError("Status should be assigned")
+	}
+
+	o.status = StatusCompleted
+
+	return nil
 }
