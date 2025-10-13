@@ -54,7 +54,7 @@ func Test_StoragePlaceShouldReturnErrorWhenParamsAreIncorrectOnCreate(t *testing
 	}
 }
 
-func Test_StoragePlaceShouldCanStore(t *testing.T) {
+func Test_StoragePlaceCanStore(t *testing.T) {
 	// Arrange
 	StoragePlace, _ := NewStoragePlace("backpack", 20)
 	// Act

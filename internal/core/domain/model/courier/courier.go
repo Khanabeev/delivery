@@ -3,14 +3,16 @@ package courier
 import (
 	"delivery/internal/core/domain/kernel"
 	"delivery/internal/core/domain/model/order"
+	"delivery/internal/pkg/ddd"
 	"delivery/internal/pkg/errs"
+	"errors"
 	"math"
 
 	"github.com/google/uuid"
 )
 
 type Courier struct {
-	id            uuid.UUID
+	baseAggregate *ddd.BaseAggregate[uuid.UUID]
 	name          string
 	speed         int
 	location      kernel.Location
@@ -26,33 +28,20 @@ func NewCourier(name string, speed int, location kernel.Location) (*Courier, err
 		return nil, errs.NewValueIsInvalidError("speed")
 	}
 
-	backpack, err := NewStoragePlace("backpack", 10)
-	if err != nil {
-		return nil, err
-	}
-	var storagePlases []*StoragePlace
-
-	storagePlases = append(storagePlases, backpack)
-
-	return &Courier{
-		id:            uuid.New(),
+	courier := &Courier{
+		baseAggregate: ddd.NewBaseAggregate(uuid.New()),
 		name:          name,
 		speed:         speed,
 		location:      location,
-		storagePlases: storagePlases,
-	}, nil
-}
-
-func (c *Courier) Equals(other *Courier) bool {
-	if other == nil {
-		return false
+		storagePlases: make([]*StoragePlace, 0),
 	}
 
-	return c.id == other.id
-}
+	err := courier.AddStoragePlace("backpack", 10)
+	if err != nil {
+		return nil, err
+	}
 
-func (c *Courier) ID() uuid.UUID {
-	return c.id
+	return courier, nil
 }
 
 func (c *Courier) Name() string {
@@ -67,8 +56,13 @@ func (c *Courier) Location() kernel.Location {
 	return c.location
 }
 
-func (c *Courier) StoragePlaces() []*StoragePlace {
-	return c.storagePlases
+func (c *Courier) StoragePlaces() []StoragePlace {
+	res := make([]StoragePlace, len(c.storagePlases))
+	for i, sp := range c.storagePlases {
+		res[i] = *sp
+	}
+
+	return res
 }
 
 func (c *Courier) AddStoragePlace(name string, volume int) error {
@@ -85,11 +79,16 @@ func (c *Courier) AddStoragePlace(name string, volume int) error {
 
 func (c *Courier) CanTakeOrder(order *order.Order) (bool, error) {
 	if order == nil {
-		return false, errs.NewValueIsInvalidError("order")
+		return false, errs.NewValueIsRequiredError("order")
 	}
 
 	for _, s := range c.storagePlases {
-		if s.TotalVolume() >= order.Volumne() {
+		canStore, err := s.CanStore(order.Volumne())
+		if err != nil {
+			return false, err
+		}
+
+		if canStore {
 			return true, nil
 		}
 	}
@@ -98,21 +97,36 @@ func (c *Courier) CanTakeOrder(order *order.Order) (bool, error) {
 }
 
 func (c *Courier) TakeOrder(order *order.Order) error {
+
+	if order == nil {
+		return errs.NewValueIsRequiredError("order")
+	}
+
 	canTake, err := c.CanTakeOrder(order)
 	if err != nil {
 		return err
 	}
 
-	if canTake {
-		order.Assign(c.id)
-		for _, s := range c.storagePlases {
-			if s.TotalVolume() <= order.Volumne() {
-				s.orderID = order.ID()
+	if !canTake {
+		return errors.New("No storage place")
+	}
+
+	for _, s := range c.storagePlases {
+		canStore, err := s.CanStore(order.Volumne())
+		if err != nil {
+			return err
+		}
+
+		if canStore {
+			err := s.Store(order.ID(), order.Volumne())
+			if err != nil {
+				return err
 			}
+			return nil
 		}
 	}
 
-	return nil
+	return errors.New("No storage place")
 }
 
 func (c *Courier) CompleteOrder(order *order.Order) error {
@@ -120,19 +134,27 @@ func (c *Courier) CompleteOrder(order *order.Order) error {
 		return errs.NewValueIsInvalidError("order")
 	}
 
-	isOrderFound := false
-	for _, s := range c.StoragePlaces() {
-		if s.orderID == order.ID() {
-			isOrderFound = true
-			s.orderID = nil
-		}
-	}
-
-	if !isOrderFound {
+	storagePlace, err := c.findStoragePlaceByOrderID(order.ID())
+	if err != nil {
 		return errs.NewObjectNotFoundError("order", order.ID())
 	}
 
+	err = storagePlace.Clear(order.ID())
+	if err != nil {
+		return err
+	}
+
 	return nil
+}
+
+func (c *Courier) findStoragePlaceByOrderID(orderID uuid.UUID) (*StoragePlace, error) {
+	if orderID == uuid.Nil (return nil, errs.NewValueIsRequiredError("orderID"))
+	for _, s := range c.storagePlases {
+		if s.orderID == &orderID {
+			return &s, nil
+		}
+	}
+	return nil, errors.New("Storage place not found")
 }
 
 func (c *Courier) CalculateTimeToLocation(target kernel.Location) (float64, error) {
@@ -145,8 +167,8 @@ func (c *Courier) CalculateTimeToLocation(target kernel.Location) (float64, erro
 		return 0, err
 	}
 
-	timeToLocation := math.Ceil((float64)(distance / c.speed))
-	return timeToLocation, nil
+	time := float64(distance) / float64(c.speed)
+	return time, nil
 }
 
 func (c *Courier) Move(target kernel.Location) error {

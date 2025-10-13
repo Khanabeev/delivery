@@ -2,17 +2,18 @@ package order
 
 import (
 	"delivery/internal/core/domain/kernel"
+	"delivery/internal/pkg/ddd"
 	"delivery/internal/pkg/errs"
 
 	"github.com/google/uuid"
 )
 
 type Order struct {
-	id        uuid.UUID
-	courierID *uuid.UUID
-	location  kernel.Location
-	volume    int
-	status    Status
+	baseEntity *ddd.BaseEntity[uuid.UUID]
+	courierID  *uuid.UUID
+	location   kernel.Location
+	volume     int
+	status     Status
 }
 
 func NewOrder(orderID uuid.UUID, location kernel.Location, volume int) (*Order, error) {
@@ -27,22 +28,15 @@ func NewOrder(orderID uuid.UUID, location kernel.Location, volume int) (*Order, 
 	}
 
 	return &Order{
-		id:       orderID,
-		location: location,
-		volume:   volume,
-		status:   StatusCreated,
+		baseEntity: ddd.NewBaseEntity(uuid.New()),
+		location:   location,
+		volume:     volume,
+		status:     StatusCreated,
 	}, nil
 }
 
-func (o *Order) Equals(other *Order) bool {
-	if other == nil {
-		return false
-	}
-	return o.id == other.id
-}
-
-func (o *Order) ID() *uuid.UUID {
-	return &o.id
+func (o *Order) ID() uuid.UUID {
+	return o.baseEntity.ID()
 }
 
 func (o *Order) CourierID() uuid.UUID {
