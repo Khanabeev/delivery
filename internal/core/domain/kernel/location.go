@@ -19,7 +19,7 @@ type Location struct {
 	x int
 	y int
 
-	valid bool
+	isValid bool
 }
 
 func NewLocation(x, y int) (Location, error) {
@@ -34,7 +34,7 @@ func NewLocation(x, y int) (Location, error) {
 		x: x,
 		y: y,
 
-		valid: true,
+		isValid: true,
 	}, nil
 }
 
@@ -67,7 +67,7 @@ func (l Location) Equal(other Location) bool {
 }
 
 func (l Location) IsValid() bool {
-	return l.valid
+	return l.isValid
 }
 
 func (l Location) DistanceTo(target Location) (int, error) {

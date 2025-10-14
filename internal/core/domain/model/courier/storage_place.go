@@ -30,7 +30,6 @@ func NewStoragePlace(name string, totalVolume int) (*StoragePlace, error) {
 		id:          uuid.New(),
 		name:        name,
 		totalVolume: totalVolume,
-		orderID:     nil,
 	}, nil
 }
 
@@ -63,20 +62,32 @@ func (s *StoragePlace) CanStore(volume int) (bool, error) {
 	}
 
 	if s.totalVolume < volume {
-		return false, errors.New("Total Volume is less that requested volume")
+		return false, nil
 	}
 
 	if s.isOccupied() {
-		return false, errors.New("Storage is occupied")
+		return false, nil
 	}
 
 	return true, nil
 }
 
 func (s *StoragePlace) Store(orderID uuid.UUID, volume int) error {
-	_, err := s.CanStore(volume)
+	if orderID == uuid.Nil {
+		return errs.NewValueIsRequiredError("orderID")
+	}
+
+	if volume <= 0 {
+		return errs.NewValueIsRequiredError("volume")
+	}
+
+	canStore, err := s.CanStore(volume)
 	if err != nil {
 		return err
+	}
+
+	if !canStore {
+		return errors.New("Can't sotre order in this storage place")
 	}
 
 	s.orderID = &orderID
@@ -84,7 +95,10 @@ func (s *StoragePlace) Store(orderID uuid.UUID, volume int) error {
 }
 
 func (s *StoragePlace) Clear(orderID uuid.UUID) error {
-	if s.orderID == nil {
+	if orderID == uuid.Nil {
+		return errs.NewValueIsRequiredError("orderID")
+	}
+	if s.orderID == nil || *s.orderID != orderID {
 		return errors.New("Storage is already empty")
 	}
 	s.orderID = nil
