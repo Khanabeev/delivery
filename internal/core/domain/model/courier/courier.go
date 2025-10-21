@@ -44,6 +44,10 @@ func NewCourier(name string, speed int, location kernel.Location) (*Courier, err
 	return courier, nil
 }
 
+func (c *Courier) ID() uuid.UUID {
+	return c.baseAggregate.ID()
+}
+
 func (c *Courier) Name() string {
 	return c.name
 }
@@ -148,10 +152,12 @@ func (c *Courier) CompleteOrder(order *order.Order) error {
 }
 
 func (c *Courier) findStoragePlaceByOrderID(orderID uuid.UUID) (*StoragePlace, error) {
-	if orderID == uuid.Nil (return nil, errs.NewValueIsRequiredError("orderID"))
+	if orderID == uuid.Nil {
+		return nil, errs.NewValueIsRequiredError("orderID")
+	}
 	for _, s := range c.storagePlases {
 		if s.orderID == &orderID {
-			return &s, nil
+			return s, nil
 		}
 	}
 	return nil, errors.New("Storage place not found")
