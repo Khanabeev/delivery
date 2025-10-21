@@ -39,8 +39,8 @@ func (o *Order) ID() uuid.UUID {
 	return o.baseEntity.ID()
 }
 
-func (o *Order) CourierID() uuid.UUID {
-	return *o.courierID
+func (o *Order) CourierID() *uuid.UUID {
+	return o.courierID
 }
 
 func (o *Order) Location() kernel.Location {
