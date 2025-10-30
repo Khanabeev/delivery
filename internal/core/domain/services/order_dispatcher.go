@@ -1,4 +1,4 @@
-package services
+ package services
 
 import (
 	"delivery/internal/core/domain/model/courier"
@@ -7,6 +7,8 @@ import (
 	"errors"
 	"fmt"
 )
+
+var _ OrderDispatcher = &orderService{}
 
 type OrderDispatcher interface {
 	Dispatch(*order.Order, []*courier.Courier) (*courier.Courier, error)
