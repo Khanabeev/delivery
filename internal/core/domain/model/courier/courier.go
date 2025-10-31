@@ -1,7 +1,7 @@
 package courier
 
 import (
-	"delivery/internal/core/domain/kernel"
+	"delivery/internal/core/domain/model/kernel"
 	"delivery/internal/core/domain/model/order"
 	"delivery/internal/pkg/ddd"
 	"delivery/internal/pkg/errs"
@@ -42,6 +42,16 @@ func NewCourier(name string, speed int, location kernel.Location) (*Courier, err
 	}
 
 	return courier, nil
+}
+
+func RestoreCourier(id uuid.UUID, name string, location kernel.Location, speed int, storagePlaces []*StoragePlace) *Courier {
+	return &Courier{
+		baseAggregate: ddd.NewBaseAggregate(id),
+		name:          name,
+		speed:         speed,
+		location:      location,
+		storagePlases: storagePlaces,
+	}
 }
 
 func (c *Courier) ID() uuid.UUID {
@@ -87,7 +97,7 @@ func (c *Courier) CanTakeOrder(order *order.Order) (bool, error) {
 	}
 
 	for _, s := range c.storagePlases {
-		canStore, err := s.CanStore(order.Volumne())
+		canStore, err := s.CanStore(order.Volume())
 		if err != nil {
 			return false, err
 		}
@@ -116,13 +126,13 @@ func (c *Courier) TakeOrder(order *order.Order) error {
 	}
 
 	for _, s := range c.storagePlases {
-		canStore, err := s.CanStore(order.Volumne())
+		canStore, err := s.CanStore(order.Volume())
 		if err != nil {
 			return err
 		}
 
 		if canStore {
-			err := s.Store(order.ID(), order.Volumne())
+			err := s.Store(order.ID(), order.Volume())
 			if err != nil {
 				return err
 			}
@@ -204,4 +214,26 @@ func (c *Courier) Move(target kernel.Location) error {
 	}
 	c.location = newLocation
 	return nil
+}
+
+func (c *Courier) IsFree() bool {
+	for _, storagePlace := range c.storagePlases {
+		if storagePlace.OrderID() != nil {
+			return false
+		}
+	}
+	return true
+}
+
+// DDD AggregateRoot interface implementation
+func (c *Courier) GetDomainEvents() []ddd.DomainEvent {
+	return c.baseAggregate.GetDomainEvents()
+}
+
+func (c *Courier) ClearDomainEvents() {
+	c.baseAggregate.ClearDomainEvents()
+}
+
+func (c *Courier) RaiseDomainEvent(event ddd.DomainEvent) {
+	c.baseAggregate.RaiseDomainEvent(event)
 }

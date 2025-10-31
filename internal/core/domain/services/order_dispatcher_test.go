@@ -1,8 +1,8 @@
 package services
 
 import (
-	"delivery/internal/core/domain/kernel"
 	"delivery/internal/core/domain/model/courier"
+	"delivery/internal/core/domain/model/kernel"
 	"delivery/internal/core/domain/model/order"
 	"testing"
 
@@ -17,13 +17,13 @@ func Test_CanDispatchValidOrder(t *testing.T) {
 	orderUuid := uuid.New()
 	location, _ := kernel.NewLocation(1, 2)
 	newOrder, _ := order.NewOrder(orderUuid, location, 5)
-	
+
 	// Act
 	orderService := NewOrderService()
 	orderService.Dispatch(newOrder, couriers)
 	// Assert
 	assert.NotNil(t, newOrder.CourierID(), "Order should be assigned to a courier")
-	
+
 	// Check that the assigned courier is one of the available couriers
 	assignedCourierID := *newOrder.CourierID()
 	found := false

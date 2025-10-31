@@ -1,7 +1,7 @@
 package order
 
 import (
-	"delivery/internal/core/domain/kernel"
+	"delivery/internal/core/domain/model/kernel"
 	"testing"
 
 	"github.com/google/uuid"

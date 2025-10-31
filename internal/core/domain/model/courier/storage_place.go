@@ -12,6 +12,7 @@ type StoragePlace struct {
 	name        string
 	totalVolume int
 	orderID     *uuid.UUID
+	courierID   *uuid.UUID
 }
 
 var (
@@ -31,6 +32,15 @@ func NewStoragePlace(name string, totalVolume int) (*StoragePlace, error) {
 		name:        name,
 		totalVolume: totalVolume,
 	}, nil
+}
+
+func RestoreStoragePlace(id uuid.UUID, name string, totalVolume int, orderID *uuid.UUID) *StoragePlace {
+	return &StoragePlace{
+		id:          id,
+		name:        name,
+		totalVolume: totalVolume,
+		orderID:     orderID,
+	}
 }
 
 func (s *StoragePlace) Equals(other *StoragePlace) bool {
@@ -54,6 +64,10 @@ func (s *StoragePlace) TotalVolume() int {
 
 func (s *StoragePlace) OrderID() *uuid.UUID {
 	return s.orderID
+}
+
+func (s *StoragePlace) CourierID() *uuid.UUID {
+	return s.courierID
 }
 
 func (s *StoragePlace) CanStore(volume int) (bool, error) {
