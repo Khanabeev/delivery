@@ -78,6 +78,32 @@ func (r *Repository) Get(ctx context.Context, ID uuid.UUID) (*courier.Courier, e
 	return aggregate, nil
 }
 
+// GetAll implements ports.CourierRepository.
+func (r *Repository) GetAll(ctx context.Context) ([]*courier.Courier, error) {
+	var dtos []CourierDTO
+
+	tx := r.getTxOrDb()
+	result := tx.WithContext(ctx).
+		// Preload all associations
+		Preload(clause.Associations).
+		Where(`EXISTS (
+			SELECT 1 FROM storage_places sp
+			WHERE sp.courier_id = couriers.id AND sp.order_id IS NOT NULL
+		)`).Find(&dtos)
+	if result.Error != nil {
+		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+			return nil, errs.NewObjectNotFoundError("Free courier", nil)
+		}
+		return nil, result.Error
+	}
+
+	aggregates := make([]*courier.Courier, len(dtos))
+	for i, dto := range dtos {
+		aggregates[i] = DtoToDomain(dto)
+	}
+	return aggregates, nil
+}
+
 // GetAllFree implements ports.CourierRepository.
 func (r *Repository) GetAllFree(ctx context.Context) ([]*courier.Courier, error) {
 	var dtos []CourierDTO
