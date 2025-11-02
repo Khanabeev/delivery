@@ -164,6 +164,68 @@ func (_c *CourierRepositoryMock_Get_Call) RunAndReturn(run func(ctx context.Cont
 	return _c
 }
 
+// GetAll provides a mock function for the type CourierRepositoryMock
+func (_mock *CourierRepositoryMock) GetAll(ctx context.Context) ([]*courier.Courier, error) {
+	ret := _mock.Called(ctx)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetAll")
+	}
+
+	var r0 []*courier.Courier
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context) ([]*courier.Courier, error)); ok {
+		return returnFunc(ctx)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context) []*courier.Courier); ok {
+		r0 = returnFunc(ctx)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*courier.Courier)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context) error); ok {
+		r1 = returnFunc(ctx)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// CourierRepositoryMock_GetAll_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetAll'
+type CourierRepositoryMock_GetAll_Call struct {
+	*mock.Call
+}
+
+// GetAll is a helper method to define mock.On call
+//   - ctx context.Context
+func (_e *CourierRepositoryMock_Expecter) GetAll(ctx interface{}) *CourierRepositoryMock_GetAll_Call {
+	return &CourierRepositoryMock_GetAll_Call{Call: _e.mock.On("GetAll", ctx)}
+}
+
+func (_c *CourierRepositoryMock_GetAll_Call) Run(run func(ctx context.Context)) *CourierRepositoryMock_GetAll_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		run(
+			arg0,
+		)
+	})
+	return _c
+}
+
+func (_c *CourierRepositoryMock_GetAll_Call) Return(couriers []*courier.Courier, err error) *CourierRepositoryMock_GetAll_Call {
+	_c.Call.Return(couriers, err)
+	return _c
+}
+
+func (_c *CourierRepositoryMock_GetAll_Call) RunAndReturn(run func(ctx context.Context) ([]*courier.Courier, error)) *CourierRepositoryMock_GetAll_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // GetAllFree provides a mock function for the type CourierRepositoryMock
 func (_mock *CourierRepositoryMock) GetAllFree(ctx context.Context) ([]*courier.Courier, error) {
 	ret := _mock.Called(ctx)
