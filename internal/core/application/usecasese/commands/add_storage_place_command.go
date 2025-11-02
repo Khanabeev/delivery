@@ -6,7 +6,7 @@ import (
 	"github.com/google/uuid"
 )
 
-type AddStoragePlace struct {
+type AddStoragePlaceCommand struct {
 	courierID   uuid.UUID
 	name        string
 	totalVolume int
@@ -14,18 +14,18 @@ type AddStoragePlace struct {
 	isValid bool
 }
 
-func NewAddStoragePlaceCommand(courierID uuid.UUID, name string, totalVolume int) (AddStoragePlace, error) {
+func NewAddStoragePlaceCommand(courierID uuid.UUID, name string, totalVolume int) (AddStoragePlaceCommand, error) {
 	if courierID == uuid.Nil {
-		return AddStoragePlace{}, errs.NewValueIsInvalidError("courierID")
+		return AddStoragePlaceCommand{}, errs.NewValueIsInvalidError("courierID")
 	}
 	if name == "" {
-		return AddStoragePlace{}, errs.NewValueIsInvalidError("name")
+		return AddStoragePlaceCommand{}, errs.NewValueIsInvalidError("name")
 	}
 	if totalVolume <= 0 {
-		return AddStoragePlace{}, errs.NewValueIsInvalidError("totalVolume")
+		return AddStoragePlaceCommand{}, errs.NewValueIsInvalidError("totalVolume")
 	}
 
-	return AddStoragePlace{
+	return AddStoragePlaceCommand{
 		courierID:   courierID,
 		name:        name,
 		totalVolume: totalVolume,
@@ -33,18 +33,18 @@ func NewAddStoragePlaceCommand(courierID uuid.UUID, name string, totalVolume int
 	}, nil
 }
 
-func (c *AddStoragePlace) IsValid() bool {
+func (c *AddStoragePlaceCommand) IsValid() bool {
 	return c.isValid
 }
 
-func (c *AddStoragePlace) CourierID() uuid.UUID {
+func (c *AddStoragePlaceCommand) CourierID() uuid.UUID {
 	return c.courierID
 }
 
-func (c *AddStoragePlace) Name() string {
+func (c *AddStoragePlaceCommand) Name() string {
 	return c.name
 }
 
-func (c *AddStoragePlace) TotalVolume() int {
+func (c *AddStoragePlaceCommand) TotalVolume() int {
 	return c.totalVolume
 }
