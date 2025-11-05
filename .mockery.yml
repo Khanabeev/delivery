@@ -1,0 +1,22 @@
+all: false
+dir: './mocks'
+filename: "{{.InterfaceName}}Mock.go"
+force-file-write: true
+formatter: goimports
+include-auto-generated: false
+log-level: info
+structname: '{{.InterfaceName}}Mock'
+pkgname: '{{.SrcPackageName}}mocks'
+recursive: true
+require-template-schema-exists: true
+template: testify
+template-schema: '{{.Template}}.schema.json'
+packages:
+  delivery/internal/core/ports:
+    config:
+      dir: ./mocks/core/portsmocks
+    interfaces:
+      UnitOfWork:
+      UnitOfWorkFactory:
+      OrderRepository:
+      CourierRepository:
