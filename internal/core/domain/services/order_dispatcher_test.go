@@ -20,7 +20,8 @@ func Test_CanDispatchValidOrder(t *testing.T) {
 
 	// Act
 	orderService := NewOrderService()
-	orderService.Dispatch(newOrder, couriers)
+	_, err := orderService.Dispatch(newOrder, couriers)
+	assert.NoError(t, err)
 	// Assert
 	assert.NotNil(t, newOrder.CourierID(), "Order should be assigned to a courier")
 

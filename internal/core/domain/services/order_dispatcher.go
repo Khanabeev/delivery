@@ -1,4 +1,4 @@
- package services
+package services
 
 import (
 	"delivery/internal/core/domain/model/courier"
@@ -50,8 +50,14 @@ func (os *orderService) Dispatch(newOrder *order.Order, couriers []*courier.Cour
 		return nil, errors.New("Courier not found")
 	}
 
-	newOrder.Assign(fastestCourier.ID())
-	fastestCourier.TakeOrder(newOrder)
+	err := newOrder.Assign(fastestCourier.ID())
+	if err != nil {
+		return nil, err
+	}
+	err = fastestCourier.TakeOrder(newOrder)
+	if err != nil {
+		return nil, err
+	}
 
 	return fastestCourier, nil
 }
