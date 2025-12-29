@@ -34,6 +34,6 @@ func (j *AssignOrderJob) Run() {
 	}
 	err = j.assignOrderHandler.Handle(ctx, command)
 	if err != nil {
-		log.Error(err)
+		//log.Error(err)
 	}
 }

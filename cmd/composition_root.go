@@ -68,33 +68,37 @@ func (f *CompositionRoot) NewUnitOfWorkFactory() (ports.UnitOfWorkFactory, error
 
 // Query Handlers
 
-func (f *CompositionRoot) NewGetAllCouriersHandler() (queries.GetAllCouriersHandler, error) {
-	db, err := f.NewDB()
+func (f *CompositionRoot) NewGetAllCouriersHandler() queries.GetAllCouriersHandler {
+	queryHandler, err := queries.NewGetAllCouriersHandler(f.db)
 	if err != nil {
-		return nil, err
+		log.Fatalf("cannot create GetAllCouriersHandler: %v", err)
 	}
 
-	return queries.NewGetAllCouriersHandler(db)
+	return queryHandler
 }
 
-func (f *CompositionRoot) NewGetAllUncompletedOrdersHandler() (queries.GetAllUncompletedOrdersHandler, error) {
-	db, err := f.NewDB()
+func (f *CompositionRoot) NewGetAllUncompletedOrdersHandler() queries.GetAllUncompletedOrdersHandler {
+	query, err := queries.NewGetAllUncompletedOrdersHandler(f.db)
 	if err != nil {
-		return nil, err
+		log.Fatalf("cannot create GetAllUncompletedOrdersHandler: %v", err)
 	}
-
-	return queries.NewGetAllUncompletedOrdersHandler(db)
+	return query
 }
 
 // Command Handlers
 
-func (f *CompositionRoot) NewAddCourierHandler() (commands.AddCourierHandler, error) {
+func (f *CompositionRoot) NewAddCourierHandler() commands.AddCourierHandler {
 	uowFactory, err := f.NewUnitOfWorkFactory()
 	if err != nil {
-		return nil, err
+		log.Fatalf("cannot create unit of work: %v", err)
 	}
 
-	return commands.NewAddCourierHandler(uowFactory)
+	commandHandler, err := commands.NewAddCourierHandler(uowFactory)
+	if err != nil {
+		log.Fatalf("cannot create NewAddCourierHandler: %v", err)
+	}
+
+	return commandHandler
 }
 
 func (f *CompositionRoot) NewAddStoragePlaceHandler() (commands.AddStoragePlaceHandler, error) {

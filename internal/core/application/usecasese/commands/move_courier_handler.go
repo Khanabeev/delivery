@@ -4,6 +4,7 @@ import (
 	"context"
 	"delivery/internal/core/ports"
 	"delivery/internal/pkg/errs"
+	"errors"
 )
 
 type MoveCourierHandler interface {
@@ -43,6 +44,22 @@ func (ch *moveCourierHandler) Handler(ctx context.Context, command MoveCourierCo
 			if sp.OrderID() != nil {
 				orderAggregate, err := uow.OrderRepository().Get(ctx, *sp.OrderID())
 				if err != nil {
+					// Если заказ не найден, освобождаем место хранения и продолжаем
+					if errors.Is(err, errs.ErrObjectNotFound) {
+						clearErr := courierAgg.ClearStoragePlaceByOrderID(*sp.OrderID())
+						if clearErr != nil {
+							// Логируем ошибку очистки, но продолжаем обработку других курьеров
+							continue
+						}
+						// Сохраняем изменения курьера после очистки места хранения
+						updateErr := uow.CourierRepository().Update(ctx, courierAgg)
+						if updateErr != nil {
+							// Логируем ошибку, но продолжаем
+							continue
+						}
+						continue
+					}
+					// Для других ошибок возвращаем ошибку
 					return err
 				}
 				if orderAggregate != nil {

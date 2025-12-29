@@ -166,11 +166,24 @@ func (c *Courier) findStoragePlaceByOrderID(orderID uuid.UUID) (*StoragePlace, e
 		return nil, errs.NewValueIsRequiredError("orderID")
 	}
 	for _, s := range c.storagePlases {
-		if s.orderID == &orderID {
+		if s.orderID != nil && *s.orderID == orderID {
 			return s, nil
 		}
 	}
 	return nil, errors.New("Storage place not found")
+}
+
+// ClearStoragePlaceByOrderID clears a storage place that contains the given orderID
+// This is useful when the order no longer exists but we need to free up the storage place
+func (c *Courier) ClearStoragePlaceByOrderID(orderID uuid.UUID) error {
+	if orderID == uuid.Nil {
+		return errs.NewValueIsRequiredError("orderID")
+	}
+	storagePlace, err := c.findStoragePlaceByOrderID(orderID)
+	if err != nil {
+		return errs.NewObjectNotFoundError("storage place with order", orderID)
+	}
+	return storagePlace.Clear(orderID)
 }
 
 func (c *Courier) CalculateTimeToLocation(target kernel.Location) (float64, error) {

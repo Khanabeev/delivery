@@ -42,7 +42,7 @@ func (qh *getAllCouriersHandler) Handler(_ GetAllCouriersQuery) ([]GetAllCourier
 
 	result := qh.db.
 		Raw(`
-		SELECT id, name, location_x, location_y
+		SELECT c.id, c.name, c.location_x, c.location_y
 		FROM couriers c
 		JOIN storage_places sp ON c.id = sp.courier_id AND sp.order_id IS NOT NULL
 		ORDER BY id`).

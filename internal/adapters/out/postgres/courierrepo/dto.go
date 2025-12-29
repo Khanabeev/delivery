@@ -28,3 +28,7 @@ type LocationDTO struct {
 func (CourierDTO) TableName() string {
 	return "couriers"
 }
+
+func (StoragePlaceDTO) TableName() string {
+	return "storage_places"
+}
