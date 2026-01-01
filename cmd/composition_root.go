@@ -6,8 +6,11 @@ import (
 	queries "delivery/internal/core/application/usecasese/queries"
 	"delivery/internal/core/domain/services"
 	"delivery/internal/core/ports"
+	"delivery/internal/pkg/jobs"
 	"fmt"
+	"log"
 
+	"github.com/robfig/cron/v3"
 	postgresgorm "gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
@@ -65,33 +68,37 @@ func (f *CompositionRoot) NewUnitOfWorkFactory() (ports.UnitOfWorkFactory, error
 
 // Query Handlers
 
-func (f *CompositionRoot) NewGetAllCouriersHandler() (queries.GetAllCouriersHandler, error) {
-	db, err := f.NewDB()
+func (f *CompositionRoot) NewGetAllCouriersHandler() queries.GetAllCouriersHandler {
+	queryHandler, err := queries.NewGetAllCouriersHandler(f.db)
 	if err != nil {
-		return nil, err
+		log.Fatalf("cannot create GetAllCouriersHandler: %v", err)
 	}
 
-	return queries.NewGetAllCouriersHandler(db)
+	return queryHandler
 }
 
-func (f *CompositionRoot) NewGetAllUncompletedOrdersHandler() (queries.GetAllUncompletedOrdersHandler, error) {
-	db, err := f.NewDB()
+func (f *CompositionRoot) NewGetAllUncompletedOrdersHandler() queries.GetAllUncompletedOrdersHandler {
+	query, err := queries.NewGetAllUncompletedOrdersHandler(f.db)
 	if err != nil {
-		return nil, err
+		log.Fatalf("cannot create GetAllUncompletedOrdersHandler: %v", err)
 	}
-
-	return queries.NewGetAllUncompletedOrdersHandler(db)
+	return query
 }
 
 // Command Handlers
 
-func (f *CompositionRoot) NewAddCourierHandler() (commands.AddCourierHandler, error) {
+func (f *CompositionRoot) NewAddCourierHandler() commands.AddCourierHandler {
 	uowFactory, err := f.NewUnitOfWorkFactory()
 	if err != nil {
-		return nil, err
+		log.Fatalf("cannot create unit of work: %v", err)
 	}
 
-	return commands.NewAddCourierHandler(uowFactory)
+	commandHandler, err := commands.NewAddCourierHandler(uowFactory)
+	if err != nil {
+		log.Fatalf("cannot create NewAddCourierHandler: %v", err)
+	}
+
+	return commandHandler
 }
 
 func (f *CompositionRoot) NewAddStoragePlaceHandler() (commands.AddStoragePlaceHandler, error) {
@@ -103,29 +110,59 @@ func (f *CompositionRoot) NewAddStoragePlaceHandler() (commands.AddStoragePlaceH
 	return commands.NewAddStoragePlaceHandler(uowFactory)
 }
 
-func (f *CompositionRoot) NewAssignOrderToCourierHandler() (commands.AssignOrderToCourierHandler, error) {
+func (f *CompositionRoot) NewAssignOrderToCourierHandler() commands.AssignOrderToCourierHandler {
 	uowFactory, err := f.NewUnitOfWorkFactory()
 	if err != nil {
-		return nil, err
+		log.Fatalf("cannot create unit of work: %v", err)
 	}
 
-	return commands.NewAssignOrderToCourierHandler(uowFactory)
+	commandHandler, err := commands.NewAssignOrderToCourierHandler(uowFactory)
+	if err != nil {
+		log.Fatalf("cannot create assign order to courier handler: %v", err)
+	}
+
+	return commandHandler
 }
 
-func (f *CompositionRoot) NewCreateOrderHandler() (commands.CreateOrderHandler, error) {
+func (f *CompositionRoot) NewCreateOrderHandler() commands.CreateOrderHandler {
 	uowFactory, err := f.NewUnitOfWorkFactory()
 	if err != nil {
-		return nil, err
+		log.Fatalf("cannot create unit of work: %v", err)
+	}
+	commandHandler, err := commands.NewCreateOrderHandler(uowFactory)
+	if err != nil {
+		log.Fatalf("cannot create create order handler: %v", err)
 	}
 
-	return commands.NewCreateOrderHandler(uowFactory)
+	return commandHandler
 }
 
-func (f *CompositionRoot) NewMoveCourierHandler() (commands.MoveCourierHandler, error) {
+func (f *CompositionRoot) NewMoveCourierHandler() commands.MoveCourierHandler {
 	uowFactory, err := f.NewUnitOfWorkFactory()
 	if err != nil {
-		return nil, err
+		log.Fatalf("cannot create unit of work: %v", err)
 	}
 
-	return commands.NewMoveCourierHandler(uowFactory)
+	commandHandler, err := commands.NewMoveCourierHandler(uowFactory)
+	if err != nil {
+		log.Fatalf("cannot create create order handler: %v", err)
+	}
+
+	return commandHandler
+}
+
+func (f *CompositionRoot) NewAssignOrdersJob() cron.Job {
+	job, err := jobs.NewAssignOrderJob(f.NewAssignOrderToCourierHandler())
+	if err != nil {
+		log.Fatalf("cannot create AssignOrdersJob: %v", err)
+	}
+	return job
+}
+
+func (f *CompositionRoot) NewMoveCouriersJob() cron.Job {
+	job, err := jobs.NewMoveCouriersJob(f.NewMoveCourierHandler())
+	if err != nil {
+		log.Fatalf("cannot create MoveCouriersJob: %v", err)
+	}
+	return job
 }
